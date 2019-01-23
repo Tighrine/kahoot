@@ -1,5 +1,7 @@
 ### kahoot with node mongo and react
 
+[![](https://www.tetrapolis-academy.fr/wp-content/uploads/2016/12/KAHOOT.gif)](https://www.tetrapolis-academy.fr/wp-content/uploads/2016/12/KAHOOT.gif)
+
 **Authors:**
 - Massinissa MOHELLEBI
 - Aghiles TIGHRINE
