@@ -26,4 +26,4 @@ const Users = new Schema({
     }]
 });
 
-module.exports = mongoose.model('Quiz', Quiz);
+module.exports = mongoose.model('User', Users);

@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+var mongoose = require('mongoose');
 
 const usersRouter = require('./routes/users/users');
 const index = require('./routes/index')
@@ -15,6 +16,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+mongoose.connect('mongodb://localhost/kahoot');
 
 app.use('/', index)
 app.use('/users', usersRouter);
