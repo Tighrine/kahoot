@@ -65,4 +65,42 @@ router.post('/logout', (req, res) => {
     res.status(200).send({ auth: false, token: null });
 })
 
+router.post('/username', (req, res) => {
+    User.findOne({username: req.body.username}, (err, user) => {
+        if(!err){
+            if(user != null){
+                res.status(200).json({
+                    message: "This username is taken, please try another"
+                })
+            }
+            else {
+                res.status(200).json({
+                    message: "Ok"
+                })
+            }
+        } else {
+            res.sendStatus(500)
+        }
+    })
+})
+
+router.post('/email', (req, res) => {
+    User.findOne({email: req.body.email}, (err, user) => {
+        if(!err){
+            if(user != null){
+                res.status(200).json({
+                    message: "This email is taken, please try another"
+                })
+            }
+            else {
+                res.status(200).json({
+                    message: "Ok"
+                })
+            }
+        } else {
+            res.sendStatus(500)
+        }
+    })
+})
+
 module.exports = router
