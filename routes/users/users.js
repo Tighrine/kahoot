@@ -1,14 +1,12 @@
 const express = require('express')
-const router = express.Router()
-const jwt = require('jsonwebtoken')
-const config = require('../config')
-const User = require('../../models/User')
-const bcrypt = require('bcryptjs')
+const router  = express.Router()
+const jwt     = require('jsonwebtoken')
+const config  = require('../config')
+const User    = require('../../models/User')
+const passwordHash  = require('password-hash')
 
 router.post('/signup', (req, res) => {
-    console.log(req.body)
-    req.body.password = bcrypt.hashSync(req.body.password, 20)
-    console.log(req.body.password)
+    
     User.findOne({ email: req.body.email }, (err, user) => {
         if (!err) {
             if (user !== null) {
@@ -17,6 +15,7 @@ router.post('/signup', (req, res) => {
                 })
             }
             else {
+                req.body.password = passwordHash.generate(req.body.password)
                 User.create(req.body, (err, user) => {
                     if (!err) {
                         console.log(`Added use: ${user}`)
@@ -34,17 +33,18 @@ router.post('/signup', (req, res) => {
 })
 
 router.post('/login', (req, res) => {
-    const body = req.body
-    console.log(req.session)
+
     User.findOne({ username: req.body.username }, (err, user) => {
         if (!err) {
             if (user != null)
-                if (bcrypt.compareSync(req.body.password, user.password)) {
+                if (passwordHash.verify(req.body.password, user.password)) {
                     jwt.sign({ id: user._id }, config.secret, (err, token) => {
                         res.json({
-                            auth:true,
+                            login: true,
                             sToken: token,
-                            role: "user"
+                            username: user.username,
+                            email: user.email,
+                            uid: user._id
                         })
                     })
                 } else {
@@ -61,8 +61,22 @@ router.post('/login', (req, res) => {
     })
 })
 
-router.post('/logout', (req, res) => {
-    res.status(200).send({ auth: false, token: null });
+/*router.post('/login', (req, res) => {
+
+    User.findOne({ username: req.body.username }).populate('quizz').exec((err, user) => {
+        if(!err) {
+            console.log(`Populated: ${user}`)
+            res.status(200).json({
+                data: user
+            })
+        }else {
+            res.sendStatus(500)
+        }
+    })
+})*/
+
+router.get('/logout', (req, res) => {
+    res.status(200).send({ login: false, token: null });
 })
 
 router.post('/username', (req, res) => {
