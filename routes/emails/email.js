@@ -1,6 +1,6 @@
-const nodemailer = require('node')
+const mailer = require('nodemailer')
 
-var smtpTransport = mailer.createTransport("SMTP",{
+var smtpTransport = mailer.createTransport({
     service: "Gmail",
     auth: {
         user: "svenken0@gmail.com",
@@ -19,6 +19,7 @@ sendEmail = (t, s, b) => {
     smtpTransport.sendMail(mail, (err, info) => {
         if (!err) {
             console.log("mail sent seccessfully !")
+            console.log(info)
         } else {
             console.log(`Email err: ${err}`)
         }

@@ -7,6 +7,7 @@ const passwordHash = require('password-hash')
 const verifyToken = require('../utils')
 const confirm = require('../emails/confirmation')
 const reset = require('../emails/resetPass')
+const sendEmail = require('../emails/email')
 
 //use to register a new user
 router.post('/signup', (req, res) => {
