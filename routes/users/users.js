@@ -241,7 +241,7 @@ router.get("/confirmation", (req, res) => {
                     user.confirmed = true
                     user.save(err => {
                         if (!err) {
-                            res.render("index", {name: user.username})
+                            res.render("confirmation", {name: user.username})
                         } else {
                             res.send("Try later ! SORRY :(")
                         }
@@ -256,5 +256,36 @@ router.get("/confirmation", (req, res) => {
     })
 })
 
+//Reset user password
+router.post('/send/reset', (req, res) => {
+
+    const email = req.body.email
+    console.log(email)
+    User.findOne({email: email}, (err, user) => {
+        if (!err) {
+            if(user != null) {
+
+                const resetCode = Math.floor(Number.MAX_SAFE_INTEGER * (2 * (Math.random() - 0.2)))
+                const resetLink = `http://${req.get('host')}/users/reset?token=${resetCode}`
+                const body = reset(user.username, resetLink)
+                sendEmail(user.email, "Reset your Password", body)
+
+                res.status(200).json({
+                    message: "Reset email sent"
+                })
+
+            } else {
+                res.json({
+                    message: "You don't exist in our database please signup first !"
+                })
+            }
+        } else {
+            res.json({
+                message: "Internal server error"
+            })
+        }
+    })
+
+})
 
 module.exports = router

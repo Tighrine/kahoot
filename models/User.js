@@ -30,6 +30,8 @@ const User = new Schema({
 
     confirmCode: Number,
 
+    resetCode: Number,
+
     createdQuizz:[{
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Quizz'

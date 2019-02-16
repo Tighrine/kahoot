@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  .main.container
+    .row
+      .col-md-6.col-md-offset-3
+        h1.display-4.m-b-2 Nouveau mot de passe
+        form(method='POST' action='/users/reset')
+          div.form-group
+            label(for='password') Mot de passe
+            input.form-control(type='text' id='password' placeholder='password' name='password')
+          div.form-group
+            label(for='passworConfirmation') Confirmation
+            input.form-control(type='passworConfirmation' id='passworConfirmation' placeholder='passworConfirmation' name='passworConfirmation')
+          button.btn.btn-primary(type='submit') Modifier 
