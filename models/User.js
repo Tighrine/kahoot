@@ -26,6 +26,10 @@ const User = new Schema({
 
     roles: [String],
 
+    confirmed: Boolean,
+
+    confirmCode: Number,
+
     createdQuizz:[{
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Quizz'

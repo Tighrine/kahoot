@@ -13,6 +13,7 @@ const quizzRouter = require('./routes/quizz/quizz')
 
 const app = express();
 
+app.set('view engine', 'pug')
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
