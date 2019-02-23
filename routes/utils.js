@@ -1,3 +1,6 @@
+const config = require('./config')
+const jwt = require('jsonwebtoken')
+
 verifyToken = (req, res, next) => {
     // Get auth header value
     const bearerHeader = req.headers['authorization'];
@@ -9,8 +12,15 @@ verifyToken = (req, res, next) => {
         const bearerToken = bearer[1];
         // Set the token
         req.token = bearerToken;
-        // Next middleware
-        next();
+        //Token verification
+        jwt.verify(req.token, config.secret, (err, authData) => {
+            if(err) 
+                res.sendStatus(401).json({
+                    message: "Vous n'etes pas autorisé"
+                })
+            
+            next();    
+        })
     } else {
         // Forbidden
         res.sendStatus(403);

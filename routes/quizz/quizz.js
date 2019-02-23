@@ -111,7 +111,9 @@ router.get('/view/:uid', verifyToken, (req, res) => {
 
     jwt.verify(req.token, config.secret, (err, authData) => {
         if (!err)
-            Quizz.find({ user_admin: req.params.uid }, (err, quizz) => {
+            Quizz.find({ user_admin: req.params.uid }).populate({
+                path: 'participants'
+            }).exec((err, quizz) => {
                 if (!err) {
                     res.json({
                         message: "Successfully found the quizz",

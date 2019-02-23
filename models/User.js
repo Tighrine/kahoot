@@ -39,10 +39,18 @@ const User = new Schema({
         ref: 'Quizz'
     }],
 
-    quizzTodo: [{
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Quizz'
-    }]
+    quizzTodo: [
+        {
+         quizz: {
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Quizz'
+         },
+         score: {
+            type: Number,
+            default: 0
+         }
+        }
+    ]
 
 });
 

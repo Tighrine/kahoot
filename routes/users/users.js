@@ -1,8 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const jwt = require('jsonwebtoken')
-const config = require('../config')
 const User = require('../../models/User')
+const Quizz = require('../../models/Quizz')
 const passwordHash = require('password-hash')
 const verifyToken = require('../utils')
 const confirm = require('../emails/confirmation')
@@ -23,11 +22,11 @@ router.post('/signup', (req, res) => {
                 req.body.password = passwordHash.generate(req.body.password)
                 req.body.confirmed = false
                 req.body.confirmCode = Math.floor(Number.MAX_SAFE_INTEGER * (2 * (Math.random() - 0.2)))
-                
+
                 User.create(req.body, (err, user) => {
                     if (!err) {
                         console.log(`Added use: ${user}`)
-                        
+
                         const confirmationLink = `http://${req.get('host')}/users/confirmation?uid=${user._id}&token=${user.confirmCode}`
                         const body = confirm(user.username, confirmationLink)
                         sendEmail(user.email, "Account confirmation", body)
@@ -80,8 +79,6 @@ router.post('/login', (req, res) => {
 //view all users
 router.get('/view', verifyToken, (req, res) => {
 
-    jwt.verify(req.token, config.secret, (err, authData) => {
-
         if (!err)
             User.find({}, (err, users) => {
                 res.json({
@@ -92,18 +89,14 @@ router.get('/view', verifyToken, (req, res) => {
             res.json({
                 err
             })
-    })
 })
 
 //use it to logout the user
 router.get('/logout', verifyToken, (req, res) => {
-
-    jwt.verify(req.token, config.secret, (err, authData) => {
         res.json({
             login: false,
             token: null
         });
-    })
 
 })
 
@@ -156,18 +149,18 @@ router.post("/reset", verifyToken, (req, res) => {
             const email = req.body.email
             req.body.resetCode = Math.floor(Number.MAX_SAFE_INTEGER * (2 * (Math.random() - 0.2)))
             req.body.reset = false
-            User.findOne({email: email}, (err,user) => {
+            User.findOne({ email: email }, (err, user) => {
                 if (!err) {
                     user.resetCode = req.body.resetCode
                     user.save((err, user) => {
-                        if(!err){
+                        if (!err) {
                             const resetLink = `http://${req.get('host')}/users/reset/${user._id}?token=${user.resetCode}`
                             const body = reset(user.username, resetLink)
                             sendEmail(user.email, "Reset your Password", body)
                         }
                     })
                 } else {
-                    
+
                 }
             })
 
@@ -179,53 +172,67 @@ router.post("/reset", verifyToken, (req, res) => {
 
 //add quizz to the to do quizz for the user
 router.post("/todo/:uid", verifyToken, (req, res) => {
-    jwt.verify(req.token, config.secret, (err, authData) => {
+    console.log('In todo route')
+    const accessToken = req.body.accessToken
+    const uid = req.params.uid
+    const qId = req.body.qId
+
+    console.log(`uid: ${uid}`)
+
+    User.findById({ _id: uid }, (err, user) => {
         if (!err) {
-            const accessToken = req.body.accessToken
-            const uid = req.params.uid
-            const qId = req.body.qId
+            let temp = user.quizzTodo
 
-            console.log(uid)
+            console.log(`temp: ${temp}`)
 
-            User.findById({ _id: uid }, (err, user) => {
-                if (!err) {
-                    let temp = user.quizzTodo
-                    temp.push(qId)
-                    user.quizzTodo = temp
+            temp.push({ quizz: qId, score: 0 })
 
-                    user.save(err => {
-                        if (err)
-                            res.send(err)
-                    })
+            console.log(`temp: ${temp}`)
+
+            user.quizzTodo = temp
+
+            user.save(err => {
+                console.log(`In Save`)
+                if (err) {
+
+                    console.log(`error: ${err}`)
+                    res.send(err)
+
                 }
-                else {
-                    console.log(err)
-                }
+
             })
+        }
+        else {
+            console.log(err)
+        }
+    })
 
-            Quizz.findById({ _id: qId }, (err, quizz) => {
-                if (!err) {
-                    let temp = quizz.participants
-                    temp.push(uid)
-                    quizz.participants = temp
+    console.log(`quizz added to user`)
+    console.log(`qId: ${qId}`)
 
-                    quizz.save(err => {
-                        if (err)
-                            res.send(err)
-                        else
-                            res.json({
-                                message: "Quizz added to todo list of the user & user added to participants list of the quizz"
-                            })
+    Quizz.findById({ _id: qId }, (err, quizz) => {
+
+        console.log(`In quizz`)
+
+        if (!err) {
+
+            console.log(`No err in quizz`)
+
+            let temp = quizz.participants
+            temp.push(uid)
+            quizz.participants = temp
+
+            quizz.save(err => {
+                if (err)
+                    res.send(err)
+                else
+                    res.json({
+                        message: "Quizz added to todo list of the user & user added to participants list of the quizz"
                     })
-                } else {
-                    console.log(err)
-                }
             })
         } else {
-            res.json({
-                action: "redirect",
-                route: "/home"
-            })
+
+            console.log(`err quizz: ${err.message}`)
         }
     })
 })
@@ -234,10 +241,10 @@ router.post("/todo/:uid", verifyToken, (req, res) => {
 router.get("/confirmation", (req, res) => {
     console.log(req.query)
 
-    User.findOne({_id: req.query.uid}, (err, user) => {
+    User.findOne({ _id: req.query.uid }, (err, user) => {
         if (!err) {
-            if(user != null) {
-                if(user.confirmCode == req.query.token){
+            if (user != null) {
+                if (user.confirmCode == req.query.token) {
                     user.confirmed = true
                     user.save(err => {
                         if (!err) {
@@ -296,6 +303,23 @@ router.post('/send/reset', (req, res) => {
             })
         }
     })
+})    
+
+//calculate the player's score
+router.post('/score/:uid', (req, res) => {
+
+    Quizz.findOne({ _id: req.params.uid }, (err, quizz) => {
+        if (!err) {
+            console.log(JSON.stringify(quizz.questions[0].answers))
+
+        }
+        else {
+            console.log(err)
+        }
+    })
+
+    console.log('in score')
+    res.sendStatus(200)
 
 })
 
