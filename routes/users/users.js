@@ -270,6 +270,17 @@ router.post('/send/reset', (req, res) => {
                 const body = reset(user.username, resetLink)
                 sendEmail(user.email, "Reset your Password", body)
 
+                user.reset = false
+                user.resetCode = resetCode
+
+                user.save(err => {
+                    if (!err) {
+                        console.log("reset set to false")
+                    } else {
+                        console.log("Problem occured while saving user in /send/rest route")
+                    }
+                })
+
                 res.status(200).json({
                     message: "Reset email sent"
                 })

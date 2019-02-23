@@ -393,7 +393,7 @@ const confirm = function(name, token){ return `<!DOCTYPE html
                                                             style="-moz-border-radius: 30px; -webkit-border-radius: 30px; border-radius: 30px;">
                                                             <a href="${token}"
                                                                 style="width:250; display:block; text-decoration:none; border:0; text-align:center; font-weight:bold;font-size:18px; font-family: Arial, sans-serif; color: #ffffff"
-                                                                class="button_link">Reset password
+                                                                class="button_link">Confirmation
                                                                 <img src="https://gallery.mailchimp.com/fdcaf86ecc5056741eb5cbc18/images/73ac4376-78ab-4d32-a0b5-b8195202e51f.jpg"
                                                                     width="32" height="17" style="padding-top:5px"
                                                                     alt="" border="0" />

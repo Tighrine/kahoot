@@ -30,6 +30,8 @@ const User = new Schema({
 
     confirmCode: Number,
 
+    reset: Boolean,
+
     resetCode: Number,
 
     createdQuizz:[{
