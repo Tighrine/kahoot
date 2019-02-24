@@ -7,6 +7,8 @@ const verifyToken = require('../utils')
 const confirm = require('../emails/confirmation')
 const reset = require('../emails/resetPass')
 const sendEmail = require('../emails/email')
+const jwt = require('jsonwebtoken')
+const config = require('../config')
 
 //use to register a new user
 router.post('/signup', (req, res) => {
@@ -49,7 +51,7 @@ router.post('/login', (req, res) => {
 
     console.log(req.body)
 
-    User.findOne({ username: req.body.username }, (err, user) => {
+    User.findOne({ email: req.body.email }, (err, user) => {
         if (!err) {
             if (user != null)
                 if (passwordHash.verify(req.body.password, user.password)) {
@@ -142,32 +144,8 @@ router.post('/email', (req, res) => {
 })
 
 //reset password
-router.post("/reset", verifyToken, (req, res) => {
+router.post("/reset", (req, res) => {
 
-    jwt.verify(req.token, config.secret, (err, authData) => {
-        if (!err) {
-            const email = req.body.email
-            req.body.resetCode = Math.floor(Number.MAX_SAFE_INTEGER * (2 * (Math.random() - 0.2)))
-            req.body.reset = false
-            User.findOne({ email: email }, (err, user) => {
-                if (!err) {
-                    user.resetCode = req.body.resetCode
-                    user.save((err, user) => {
-                        if (!err) {
-                            const resetLink = `http://${req.get('host')}/users/reset/${user._id}?token=${user.resetCode}`
-                            const body = reset(user.username, resetLink)
-                            sendEmail(user.email, "Reset your Password", body)
-                        }
-                    })
-                } else {
-
-                }
-            })
-
-        } else {
-            res.send(err)
-        }
-    })
 })
 
 //add quizz to the to do quizz for the user
@@ -303,24 +281,83 @@ router.post('/send/reset', (req, res) => {
             })
         }
     })
-})    
+})
 
-//calculate the player's score
-router.post('/score/:uid', (req, res) => {
-
-    Quizz.findOne({ _id: req.params.uid }, (err, quizz) => {
-        if (!err) {
-            console.log(JSON.stringify(quizz.questions[0].answers))
-
+//render reset form
+router.get('/reset', (req, res) => {
+    const token = req.query.token
+    console.log(`token: ${token}`)
+    User.findOne({resetCode: token}, (err, user) => {
+        if(!err) {
+            if(token == user.resetCode)
+                res.render("resetForm")
         }
         else {
             console.log(err)
         }
     })
+})
 
-    console.log('in score')
-    res.sendStatus(200)
+//calculate the player's score
+router.post('/score/:nickname', (req, res) => {
 
+    const quizzCode = req.body.quizzCode
+    const questionIndex = req.body.questionIndex
+    const answerIndex = req.body.answerIndex
+    const player = req.params.nickname
+
+    Quizz.findOne({ code: quizzCode }, (err, quizz) => {
+        if (!err) {
+            const participants = quizz.participants
+            const answerQuizz = quizz.questions[questionIndex].answers[answerIndex]
+            console.log(answerQuizz)
+            if(answerQuizz.correct) {
+                Object.keys(participants).map(key => {
+                    if(player == participants[key].nickname) {
+                        participants[key].score += 1
+                        quizz.save(err => {
+                            if(!err) {
+                                res.status(200).json({
+                                    nickname: player,
+                                    //when you'll receive the score just add 1 to the current score in the front app
+                                    score: 1
+                                })
+                            } else {
+                                res.sendStatus(500)                            
+                            }
+                        })
+                    }
+                })
+            } else {
+                res.status(200).json({
+                    score: 0
+                })
+            }
+
+        } else {
+            console.log(err)
+            res.send(500, "Internal server Error ! Sorry")
+        }
+    })
+
+})
+
+//Add a participant using quizz code and nickname
+router.post("/add/participant", (req,res) => {
+    const code = req.body.code
+    const nickname = req.body.nickname
+
+    Quizz.findOneAndUpdate({code}, {
+        $push: {
+            participants: {
+                nickname,
+                score: 0
+            }
+        }
+
+    }, {new: true} ,(err, quizz) => {
+        
+    })
 })
 
 module.exports = router

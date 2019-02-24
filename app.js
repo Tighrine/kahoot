@@ -9,6 +9,12 @@ const usersRouter = require('./routes/users/users');
 const quizzRouter = require('./routes/quizz/quizz')
 
 const app = express();
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
+
+io.on('connection', socket => {
+  console.log(`user is connected: ${socket}`)
+})
 
 app.set('view engine', 'pug')
 app.use(logger('dev'));

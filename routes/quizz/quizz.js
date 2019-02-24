@@ -149,4 +149,17 @@ router.get('/view', (req, res) => {
     })
 
 })
+
+//get quizz code
+router.get('/pin/:qId', (req, res) => {
+    //this line gives us a unique code
+    const code = Math.random().toString(36).substr(2, 9)
+
+    Quizz.findByIdAndUpdate({_id: req.params.qId}, {$set: {code}}, {new: true}, (err, quizz) => {
+        res.json({
+            pin: quizz.code
+        })
+    })
+})
+
 module.exports = router

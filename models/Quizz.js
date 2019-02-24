@@ -29,6 +29,8 @@ const Quizz = new Schema({
         
     }],
 
+    code: String,
+
     language: {
         type: String,
         required: true
@@ -45,8 +47,8 @@ const Quizz = new Schema({
     },
 
     participants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        nickname: String,
+        score: Number,
     }]
 
 });
