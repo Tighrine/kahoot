@@ -81,24 +81,24 @@ router.post('/login', (req, res) => {
 //view all users
 router.get('/view', verifyToken, (req, res) => {
 
-        if (!err)
-            User.find({}, (err, users) => {
-                res.json({
-                    users
-                })
-            })
-        else
+    if (!err)
+        User.find({}, (err, users) => {
             res.json({
-                err
+                users
             })
+        })
+    else
+        res.json({
+            err
+        })
 })
 
 //use it to logout the user
 router.get('/logout', verifyToken, (req, res) => {
-        res.json({
-            login: false,
-            token: null
-        });
+    res.json({
+        login: false,
+        token: null
+    });
 
 })
 
@@ -226,7 +226,7 @@ router.get("/confirmation", (req, res) => {
                     user.confirmed = true
                     user.save(err => {
                         if (!err) {
-                            res.render("confirmation", {name: user.username})
+                            res.render("confirmation", { name: user.username })
                         } else {
                             res.send("Try later ! SORRY :(")
                         }
@@ -246,12 +246,12 @@ router.post('/send/reset', (req, res) => {
 
     const email = req.body.email
     console.log(email)
-    User.findOne({email: email}, (err, user) => {
+    User.findOne({ email: email }, (err, user) => {
         if (!err) {
-            if(user != null) {
+            if (user != null) {
 
                 const resetCode = Math.floor(Number.MAX_SAFE_INTEGER * (2 * (Math.random() - 0.2)))
-                const resetLink = `http://${req.get('host')}/users/reset?token=${resetCode}`
+                const resetLink = `http://${req.get('host')}/users/reset?token=${resetCode}&user=${user.username}`
                 const body = reset(user.username, resetLink)
                 sendEmail(user.email, "Reset your Password", body)
 
@@ -285,15 +285,50 @@ router.post('/send/reset', (req, res) => {
 
 //render reset form
 router.get('/reset', (req, res) => {
-    const token = req.query.token
-    console.log(`token: ${token}`)
-    User.findOne({resetCode: token}, (err, user) => {
-        if(!err) {
-            if(token == user.resetCode)
-                res.render("resetForm")
+    const token = Number(req.query.token)
+    const name = req.query.user
+
+    //res.render("reset", { token })
+    User.findOne({ username: name }, (err, user) => {
+        if (!err) {
+            console.log(user)
+            console.log(typeof user.resetCode)
+            console.log(`token: ${typeof token}`)
+            if (token === user.resetCode)
+                res.render("reset", { username: name, code: token })
+            else
+                res.send("you're not in our database")
         }
         else {
-            console.log(err)
+            res.send(err)
+        }
+    })
+})
+
+router.post('/reset/pwd', (req, res) => {
+    const token = Number(req.query.token)
+    const name = req.query.user
+    const pwd = passwordHash.generate(req.body.pwd)
+
+    User.findOne({ username: name }, (err, user) => {
+        if (!err) {
+            console.log(user)
+            console.log(typeof user.resetCode)
+            console.log(`token: ${typeof token}`)
+            if (token === user.resetCode) {
+                user.password = pwd
+                user.save(err => {
+                    if (!err)
+                        res.render('pwdRes', { name })
+                    else
+                        res.send(err.message)
+                })
+            }
+            else
+                res.send("you're not in our database")
+        }
+        else {
+            res.send(err)
         }
     })
 })
@@ -306,30 +341,33 @@ router.post('/score/:nickname', (req, res) => {
     const answerIndex = req.body.answerIndex
     const player = req.params.nickname
 
+    console.log(`quizzCode: ${quizzCode}`)
+
     Quizz.findOne({ code: quizzCode }, (err, quizz) => {
         if (!err) {
             const participants = quizz.participants
             const answerQuizz = quizz.questions[questionIndex].answers[answerIndex]
             console.log(answerQuizz)
-            if(answerQuizz.correct) {
-                Object.keys(participants).map(key => {
-                    if(player == participants[key].nickname) {
-                        participants[key].score += 1
+            if (answerQuizz.correct) {
+                for(i = 0; i< participants.length; i++) {
+                    if (player == participants[i].nickname) {
+                        participants[i].score += 1
                         quizz.save(err => {
-                            if(!err) {
+                            if (!err) {
                                 res.status(200).json({
-                                    nickname: player,
+                                    player,
                                     //when you'll receive the score just add 1 to the current score in the front app
                                     score: 1
                                 })
                             } else {
-                                res.sendStatus(500)                            
+                                res.sendStatus(500)
                             }
                         })
                     }
-                })
+                }
             } else {
                 res.status(200).json({
+                    player,
                     score: 0
                 })
             }
@@ -343,20 +381,55 @@ router.post('/score/:nickname', (req, res) => {
 })
 
 //Add a participant using quizz code and nickname
-router.post("/add/participant", (req,res) => {
+router.post("/add/participant", (req, res) => {
     const code = req.body.code
     const nickname = req.body.nickname
 
-    Quizz.findOneAndUpdate({code}, {
-        $push: {
-            participants: {
-                nickname,
-                score: 0
+    Quizz.findOne({ code }, (err, quizz) => {
+        if (!err) {
+            const temp = quizz.participants
+            console.log(`participants: ${temp}`)
+            console.log(`quizz: ${quizz}`)
+            if(temp.length > 0){
+                for(i = 0; i < temp.length; i++){
+                    if(temp[i].nickname == nickname){
+                        var exist = true
+                        break
+                    }
+                }
+            }
+
+            if (!exist) {
+
+                temp.push({
+                    nickname,
+                    score: 0
+                })
+
+                quizz.participants = temp
+                console.log(`participants: ${quizz.participants}`)
+                quizz.save(err => {
+                    if (!err)
+                        res.status(200).send({
+                            saved: true
+                        })
+                    else {
+                        res.send(err.message)
+                    }
+                })
+            }
+            else {
+                res.status(200).send({
+                    saved: false,
+                    cause: "nickname exists"
+                })
             }
         }
-
-    }, {new: true} ,(err, quizz) => {
-        
+        else {
+            res.status(500).json({
+                err
+            })
+        }
     })
 })
 
