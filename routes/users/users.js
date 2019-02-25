@@ -66,12 +66,12 @@ router.post('/login', (req, res) => {
                     })
                 } else {
                     res.status(404).json({
-                        message: "No user Found !"
+                        message: "Password incorrect"
                     })
                 }
             else {
                 res.status(500).json({
-                    message: "Error on the server try later"
+                    message: "User not found"
                 })
             }
         }
