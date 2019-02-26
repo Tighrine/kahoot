@@ -151,7 +151,7 @@ router.get('/view', (req, res) => {
 })
 
 //get all quizz from the db
-router.get('/view/:qId', (req, res) => {
+router.get('/get/view/:qId', (req, res) => {
 
     Quizz.findById({_id: req.params.qId}, (err, quizz) => {
         if (!err)
