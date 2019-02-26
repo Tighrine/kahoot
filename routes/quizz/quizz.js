@@ -150,6 +150,22 @@ router.get('/view', (req, res) => {
 
 })
 
+//get all quizz from the db
+router.get('/view/:qId', (req, res) => {
+
+    Quizz.findById({_id: req.params.qId}, (err, quizz) => {
+        if (!err)
+            res.json({
+                quizz
+            })
+        else
+            res.json({
+                err
+            })
+    })
+
+})
+
 //get quizz code
 router.get('/pin/:qId', (req, res) => {
     //this line gives us a unique code
