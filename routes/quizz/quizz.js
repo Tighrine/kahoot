@@ -188,4 +188,25 @@ router.get('/get/pin/:code', (req, res) => {
     })
 })
 
+//reset participants and quizz code to null
+router.post('/resetdata/:code', (req,res) => {
+    console.log(req.params.code)
+    console.log(typeof req.body.finished)
+    const temp = req.params.code
+    const finished = req.body.finished
+    if(finished === true){
+        console.log('object')
+        Quizz.findOneAndUpdate({ code: temp }, {code:'', participants:[]}, {new: true}, (err, quizz) => {
+            if(!err){
+                console.log(quizz)
+                res.status(200).json({
+                    reset: true
+                })
+            }    
+            else
+                console.log(err)    
+        })
+    }
+})
+
 module.exports = router
