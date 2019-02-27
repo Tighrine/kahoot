@@ -203,8 +203,11 @@ router.post('/resetdata/:code', (req,res) => {
                     reset: true
                 })
             }    
-            else
-                console.log(err)    
+            else{
+                res.status(500).json({
+                    err
+                })
+            }
         })
     }
 })
