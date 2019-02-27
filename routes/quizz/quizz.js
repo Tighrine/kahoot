@@ -178,4 +178,14 @@ router.get('/pin/:qId', (req, res) => {
     })
 })
 
+//get quizz using quizz code
+router.get('/get/pin/:code', (req, res) => {
+
+    Quizz.findOne({code: req.params.code}, (err, quizz) => {
+        res.json({
+            quizz
+        })
+    })
+})
+
 module.exports = router
