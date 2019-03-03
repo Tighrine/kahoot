@@ -196,7 +196,7 @@ router.post('/resetdata/:code', (req,res) => {
     const finished = req.body.finished
     if(finished === true){
         console.log('object')
-        Quizz.findOneAndUpdate({ code: temp }, {code:'', participants:[]}, {new: true}, (err, quizz) => {
+        Quizz.findOneAndUpdate({ _id: temp }, {code:'', participants:[]}, {new: true}, (err, quizz) => {
             if(!err){
                 console.log(quizz)
                 res.status(200).json({
